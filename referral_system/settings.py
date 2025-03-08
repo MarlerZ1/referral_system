@@ -40,6 +40,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'authorization',
+    'referral',
+
+    'oauth2_provider',
+    'social_django',
+    'rest_framework_social_oauth2',
+    'rest_framework',
+
 ]
 
 MIDDLEWARE = [
@@ -53,6 +61,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'referral_system.urls'
+DRFSO2_URL_NAMESPACE = 'authorization:rest_framework_social_oauth2'
 
 TEMPLATES = [
     {
@@ -65,6 +74,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -75,7 +86,7 @@ WSGI_APPLICATION = 'referral_system.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+AUTH_USER_MODEL = 'authorization.User'
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('ENGINE'),
@@ -106,6 +117,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.vk.VKOAuth2',
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # OAuth 2.0
+        'rest_framework_social_oauth2.authentication.SocialAuthentication',
+    ),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
