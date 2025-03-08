@@ -1,3 +1,4 @@
+import pytz
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -25,6 +26,9 @@ class ReferralCodeCreateSerializer(serializers.ModelSerializer):
         fields = ['expires_at']
 
     def validate_expires_at(self, value):
+        if value.tzinfo:
+            value = value.astimezone(pytz.utc)
+
         if value < timezone.now():
             raise serializers.ValidationError("The expiration date cannot be in the past")
         return value
