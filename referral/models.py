@@ -1,7 +1,5 @@
 import uuid
 from django.db import models
-from django.utils import timezone
-from rest_framework.exceptions import ValidationError
 
 
 
@@ -12,9 +10,6 @@ class ReferralCode(models.Model):
     expires_at = models.DateTimeField()
     owner = models.ForeignKey('authorization.User',on_delete=models.CASCADE,related_name="owner")
 
-    def clean(self):
-        if self.expires_at < timezone.now():
-            raise ValidationError("Срок годности не может быть раньше даты создания.")
 
     def __str__(self):
         return str(self.uuid)
