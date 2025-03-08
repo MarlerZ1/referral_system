@@ -30,8 +30,8 @@ class RegisterSerializer(serializers.ModelSerializer):
                     code = ReferralCode.objects.get(uuid=referral_code)
 
                     code.clean()
-                    user.referral_code = code
-                    user.save()
+                    code.owner = user
+                    code.save()
                 except ValueError:
                     print("Invalid UUID format")
                 except ValidationError:
