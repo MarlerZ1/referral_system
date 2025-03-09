@@ -5,7 +5,7 @@ from referral.views import EmailReferralCodeView, ReferralListView, ReferralCode
 app_name = 'referral'
 
 urlpatterns = [
-    path('get_code/', EmailReferralCodeView.as_view()),
+    path('get_code/<str:email>', EmailReferralCodeView.as_view()),
     path('referrals/<int:user_id>/', ReferralListView.as_view()),
     path('create/', ReferralCodeCreateView.as_view()),
     path('delete/', ReferralCodeDeleteView.as_view()),

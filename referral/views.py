@@ -1,18 +1,20 @@
 from django.core.exceptions import ObjectDoesNotExist
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, permissions
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_social_oauth2.views import TokenView, RevokeTokenView
 
 from authorization.models import User
 from referral.models import ReferralCode
-from referral.serializers import UserReferralSerializer, ReferralCodeCreateSerializer, ReferralCodeDeleteSerializer
+from referral.serializers import UserReferralSerializer, ReferralCodeCreateSerializer, ReferralCodeDeleteSerializer, \
+    TokenCreateSerializer, TokenRevokeSerializer, ExpiresAtSerializer
 
 
 class EmailReferralCodeView(APIView):
-    def get(self, request, *args, **kwargs):
-        email = request.query_params.get('email', None)
+    serializer_class = None
 
+    def get(self, request, email, *args, **kwargs):
         if not email:
             return Response({"error": "Email parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -29,8 +31,9 @@ class EmailReferralCodeView(APIView):
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
-
 class ReferralListView(APIView):
+    serializer_class = None
+
     def get(self, request, user_id, *args, **kwargs):
         try:
             user = User.objects.get(id=user_id)
@@ -45,9 +48,11 @@ class ReferralListView(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class ReferralCodeCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=ExpiresAtSerializer)
     def post(self, request):
         serializer = ReferralCodeCreateSerializer(data=request.data, context={'request': request})
 
@@ -70,3 +75,19 @@ class ReferralCodeDeleteView(APIView):
                 "message": "The referral code has been deleted",
             }, status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TokenRevokeView(RevokeTokenView):
+    serializer_class = TokenRevokeSerializer
+
+    @extend_schema(request=TokenRevokeSerializer)
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class TokenViewCustom(TokenView):
+    serializer_class = TokenCreateSerializer
+
+    @extend_schema(request=TokenCreateSerializer)
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)

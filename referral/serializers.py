@@ -11,6 +11,7 @@ class ReferralCodeSerializer(serializers.ModelSerializer):
         model = ReferralCode
         fields = ['uuid', 'created_at', 'expires_at']
 
+
 class UserReferralSerializer(serializers.ModelSerializer):
     referral_code = ReferralCodeSerializer()
 
@@ -21,6 +22,7 @@ class UserReferralSerializer(serializers.ModelSerializer):
 
 class ReferralCodeCreateSerializer(serializers.ModelSerializer):
     expires_at = serializers.DateTimeField()
+
     class Meta:
         model = ReferralCode
         fields = ['expires_at']
@@ -47,6 +49,7 @@ class ReferralCodeCreateSerializer(serializers.ModelSerializer):
 
         return referral_code
 
+
 class ReferralCodeDeleteSerializer(serializers.Serializer):
     def validate(self, data):
         user = self.context['request'].user
@@ -62,3 +65,26 @@ class ReferralCodeDeleteSerializer(serializers.Serializer):
         referral_code = ReferralCode.objects.filter(owner=user).first()
         if referral_code:
             referral_code.delete()
+
+
+class ClientData(serializers.Serializer):
+    client_id = serializers.CharField(required=True)
+    client_secret = serializers.CharField(required=True)
+
+
+class TokenSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
+
+
+class TokenRevokeSerializer(ClientData, TokenSerializer):
+    pass
+
+
+class TokenCreateSerializer(ClientData):
+    grant_type = serializers.CharField(required=True)
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+
+
+class ExpiresAtSerializer(serializers.Serializer):
+    expires_at = serializers.DateTimeField()
