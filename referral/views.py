@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from authorization.models import User
 from referral.models import ReferralCode
 from referral.serializers import UserReferralSerializer, ReferralCodeCreateSerializer, ReferralCodeDeleteSerializer, \
- ExpiresAtSerializer
+    ExpiresAtSerializer
 
 
 class EmailReferralCodeView(APIView):
@@ -68,10 +68,7 @@ class ReferralCodeDeleteView(APIView):
     async def delete(self, request):
         serializer = ReferralCodeDeleteSerializer(data=request.data, context={'request': request})
 
-        if await sync_to_async(serializer.is_valid)():
+        if serializer.is_valid():
             await serializer.delete()
-
-            return Response({
-                "message": "The referral code has been deleted",
-            }, status=status.HTTP_204_NO_CONTENT)
+            return Response({"message": "The referral code has been deleted", }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

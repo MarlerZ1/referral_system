@@ -55,21 +55,15 @@ class ReferralCodeCreateSerializer(Serializer):
 
 
 class ReferralCodeDeleteSerializer(serializers.Serializer):
-    def validate(self, data):
-        user = self.context['request'].user
-
-        referral_code = ReferralCode.objects.filter(owner=user).first()
-        if not referral_code:
-            raise serializers.ValidationError("You don't have an active referral code")
-        return data
-
     async def delete(self):
         user = self.context['request'].user
 
         referral_code = await ReferralCode.objects.filter(owner=user).afirst()
+
         if referral_code:
             await referral_code.adelete()
-
+        else:
+            raise serializers.ValidationError("You don't have an active referral code")
 
 
 
