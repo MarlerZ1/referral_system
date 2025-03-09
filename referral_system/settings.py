@@ -172,3 +172,6 @@ SPECTACULAR_SETTINGS = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 }
+
+HUNTER_API_KEY = os.getenv("HUNTER_API_KEY")
+HUNTER_API_URL = os.getenv("HUNTER_API_URL")

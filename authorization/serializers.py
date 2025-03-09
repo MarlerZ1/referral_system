@@ -1,5 +1,6 @@
 import uuid
 
+import httpx
 from adrf.serializers import Serializer
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
@@ -8,6 +9,7 @@ from rest_framework.exceptions import ValidationError
 
 from authorization.models import User
 from referral.models import ReferralCode
+from referral_system.settings import HUNTER_API_KEY, HUNTER_API_URL
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -41,6 +43,16 @@ class RegisterSerializer(serializers.ModelSerializer):
                 except ObjectDoesNotExist:
                     print("Incorrect code")
         return user
+
+    async def check_email(self, email):
+        url = f"{HUNTER_API_URL}?email={email}&api_key={HUNTER_API_KEY}"
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+
+        status = response.json()['data']['status']
+        if status == 'invalid':
+            raise serializers.ValidationError("Email is incorrect")
 
 class ClientData(Serializer):
     client_id = serializers.CharField(required=True)

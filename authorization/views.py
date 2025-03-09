@@ -2,6 +2,7 @@ from adrf.views import APIView
 from asgiref.sync import sync_to_async
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework_social_oauth2.views import RevokeTokenView, TokenView
 
@@ -12,9 +13,17 @@ from referral.serializers import TokenCreateSerializer
 class RegisterView(APIView):
     async def post(self, request):
         serializer = RegisterSerializer(data=request.data)
-        if await sync_to_async(serializer.is_valid)():
-            await sync_to_async(serializer.save)()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        try:
+            await serializer.check_email(request.data["email"])
+
+            if await sync_to_async(serializer.is_valid)():
+                await sync_to_async(serializer.save)()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except ValidationError as e:
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
