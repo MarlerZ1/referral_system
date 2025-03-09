@@ -3,8 +3,7 @@ from django.urls import path, include
 from oauth2_provider.views import AuthorizationView
 
 
-from authorization.views import RegisterView
-from referral.views import TokenRevokeView, TokenViewCustom
+from authorization.views import RegisterView, TokenRevokeView, TokenViewCustom
 
 app_name = 'authorization'
 

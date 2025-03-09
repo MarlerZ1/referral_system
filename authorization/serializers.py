@@ -1,4 +1,6 @@
 import uuid
+
+from adrf.serializers import Serializer
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework import serializers
@@ -39,3 +41,10 @@ class RegisterSerializer(serializers.ModelSerializer):
                 except ObjectDoesNotExist:
                     print("Incorrect code")
         return user
+
+class ClientData(Serializer):
+    client_id = serializers.CharField(required=True)
+    client_secret = serializers.CharField(required=True)
+
+class TokenRevokeSerializer(ClientData):
+    token = serializers.CharField(required=True)

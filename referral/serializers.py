@@ -1,18 +1,22 @@
 import pytz
-from django.utils import timezone
+from adrf.serializers import Serializer
+from django.db import transaction
 from rest_framework import serializers
+from django.utils import timezone
+
 
 from authorization.models import User
+from authorization.serializers import ClientData
 from referral.models import ReferralCode
 
 
-class ReferralCodeSerializer(serializers.ModelSerializer):
+class ReferralCodeSerializer(Serializer):
     class Meta:
         model = ReferralCode
         fields = ['uuid', 'created_at', 'expires_at']
 
 
-class UserReferralSerializer(serializers.ModelSerializer):
+class UserReferralSerializer(Serializer):
     referral_code = ReferralCodeSerializer()
 
     class Meta:
@@ -20,7 +24,7 @@ class UserReferralSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'referral_code']
 
 
-class ReferralCodeCreateSerializer(serializers.ModelSerializer):
+class ReferralCodeCreateSerializer(Serializer):
     expires_at = serializers.DateTimeField()
 
     class Meta:
@@ -37,15 +41,15 @@ class ReferralCodeCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
+        with transaction.atomic():
+            referral_code =  ReferralCode.objects.filter(owner=user).first()
+            if referral_code:
+                raise serializers.ValidationError("You already have an active referral code")
 
-        referral_code = ReferralCode.objects.filter(owner=user).first()
-        if referral_code:
-            raise serializers.ValidationError("You already have an active referral code")
+            referral_code = ReferralCode.objects.create(**validated_data, owner=user)
 
-        referral_code = ReferralCode.objects.create(**validated_data, owner=user)
-
-        user.own_referral_code = referral_code
-        user.save()
+            user.own_referral_code = referral_code
+            user.save()
 
         return referral_code
 
@@ -59,25 +63,14 @@ class ReferralCodeDeleteSerializer(serializers.Serializer):
             raise serializers.ValidationError("You don't have an active referral code")
         return data
 
-    def delete(self):
+    async def delete(self):
         user = self.context['request'].user
 
-        referral_code = ReferralCode.objects.filter(owner=user).first()
+        referral_code = await ReferralCode.objects.filter(owner=user).afirst()
         if referral_code:
-            referral_code.delete()
+            await referral_code.adelete()
 
 
-class ClientData(serializers.Serializer):
-    client_id = serializers.CharField(required=True)
-    client_secret = serializers.CharField(required=True)
-
-
-class TokenSerializer(serializers.Serializer):
-    token = serializers.CharField(required=True)
-
-
-class TokenRevokeSerializer(ClientData, TokenSerializer):
-    pass
 
 
 class TokenCreateSerializer(ClientData):
