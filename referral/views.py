@@ -6,9 +6,9 @@ from rest_framework import status, permissions
 from rest_framework.response import Response
 
 from authorization.models import User
-from referral.models import ReferralCode
 from referral.serializers import UserReferralSerializer, ReferralCodeCreateSerializer, ReferralCodeDeleteSerializer, \
     ExpiresAtSerializer
+from utils.Cache import get_cached_code
 
 
 class EmailReferralCodeView(APIView):
@@ -19,9 +19,7 @@ class EmailReferralCodeView(APIView):
             return Response({"error": "Email parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            user = await User.objects.aget(email=email)
-
-            code = await ReferralCode.objects.filter(owner=user).afirst()
+            code = await get_cached_code(email=email)
             if code:
                 return Response({"referral_code": str(code.uuid)}, status=status.HTTP_200_OK)
             else:
@@ -40,7 +38,7 @@ class ReferralListView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        code = await ReferralCode.objects.filter(owner=user).afirst()
+        code = await get_cached_code(owner=user)
 
         referrals = await User.objects.filter(referral_code=code).aall() if code else []
 

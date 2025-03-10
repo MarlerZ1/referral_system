@@ -1,19 +1,20 @@
 import pytz
 from adrf.serializers import Serializer
+from asgiref.sync import async_to_sync
 from django.db import transaction
-from rest_framework import serializers
 from django.utils import timezone
-
+from rest_framework import serializers
 
 from authorization.models import User
 from authorization.serializers import ClientData
 from referral.models import ReferralCode
+from utils.Cache import get_cached_code
 
 
 class ReferralCodeSerializer(Serializer):
     class Meta:
         model = ReferralCode
-        fields = ['uuid', 'created_at', 'expires_at']
+        fields = ['uuid', 'created_at', 'expires_at', "owner"]
 
 
 class UserReferralSerializer(Serializer):
@@ -42,7 +43,7 @@ class ReferralCodeCreateSerializer(Serializer):
     def create(self, validated_data):
         user = self.context['request'].user
         with transaction.atomic():
-            referral_code =  ReferralCode.objects.filter(owner=user).first()
+            referral_code = async_to_sync(get_cached_code)(owner=user)
             if referral_code:
                 raise serializers.ValidationError("You already have an active referral code")
 
@@ -64,7 +65,6 @@ class ReferralCodeDeleteSerializer(serializers.Serializer):
             await referral_code.adelete()
         else:
             raise serializers.ValidationError("You don't have an active referral code")
-
 
 
 class TokenCreateSerializer(ClientData):

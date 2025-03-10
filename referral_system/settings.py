@@ -175,3 +175,16 @@ SPECTACULAR_SETTINGS = {
 
 HUNTER_API_KEY = os.getenv("HUNTER_API_KEY")
 HUNTER_API_URL = os.getenv("HUNTER_API_URL")
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+CACHE_TIMEOUT = os.getenv("CACHE_TIMEOUT")
