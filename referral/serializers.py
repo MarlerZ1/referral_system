@@ -11,21 +11,20 @@ from referral.models import ReferralCode
 from utils.Cache import get_cached_code
 
 
-class ReferralCodeSerializer(Serializer):
+class ReferralCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReferralCode
         fields = ['uuid', 'created_at', 'expires_at', "owner"]
 
 
-class UserReferralSerializer(Serializer):
-    referral_code = ReferralCodeSerializer()
+class UserReferralSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'referral_code']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
 
-class ReferralCodeCreateSerializer(Serializer):
+class ReferralCodeCreateSerializer(serializers.ModelSerializer):
     expires_at = serializers.DateTimeField()
 
     class Meta:

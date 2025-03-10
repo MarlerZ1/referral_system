@@ -5,6 +5,7 @@ __pycache__/
 .idea/
 .env
 .venv/
+staticfiles/
 # C extensions
 *.so
 

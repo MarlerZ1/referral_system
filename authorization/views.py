@@ -11,6 +11,7 @@ from referral.serializers import TokenCreateSerializer
 
 
 class RegisterView(APIView):
+    serializer_class = RegisterSerializer
     async def post(self, request):
         serializer = RegisterSerializer(data=request.data)
 

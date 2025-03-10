@@ -15,19 +15,20 @@ async def get_cached_code(email=None, owner=None):
     from referral.serializers import ReferralCodeSerializer
     from authorization.models import User
 
-    cached_data = await sync_to_async(cache.get)(email)
+    cached_data = await sync_to_async(cache.get)(email if email else owner.email)
 
     if cached_data:
         data = json.loads(cached_data)
-        return ReferralCode(**data)
+        return ReferralCode(uuid=data["uuid"], created_at=data["created_at"], expires_at=data["expires_at"], owner_id=data["owner"])
 
     try:
         if not owner:
-            owner = await User.objects.aget(email=email if email else owner.email)
-
+            owner = await User.objects.aget(email=email)
         code_object = await ReferralCode.objects.aget(owner=owner)
         serialized = ReferralCodeSerializer(code_object).data
         await sync_to_async(cache.set)(owner.email, json.dumps(serialized), CACHE_TIMEOUT)
+
         return code_object
-    except:
+    except BaseException as e:
+        print(e)
         return None

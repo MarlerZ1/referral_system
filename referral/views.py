@@ -6,8 +6,9 @@ from rest_framework import status, permissions
 from rest_framework.response import Response
 
 from authorization.models import User
+from referral.models import ReferralCode
 from referral.serializers import UserReferralSerializer, ReferralCodeCreateSerializer, ReferralCodeDeleteSerializer, \
-    ExpiresAtSerializer
+    ExpiresAtSerializer, ReferralCodeSerializer
 from utils.Cache import get_cached_code
 
 
@@ -19,14 +20,18 @@ class EmailReferralCodeView(APIView):
             return Response({"error": "Email parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            code = await get_cached_code(email=email)
+            code = await  get_cached_code(email=email)
             if code:
-                return Response({"referral_code": str(code.uuid)}, status=status.HTTP_200_OK)
+                return Response({"User referral code:": str(ReferralCodeSerializer(code).data)}, status=status.HTTP_200_OK)
             else:
                 return Response({"error": "User does not have a referral code."}, status=status.HTTP_404_NOT_FOUND)
 
         except ObjectDoesNotExist:
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+@sync_to_async
+def get_users_by_referral_code(referral_code):
+        return User.objects.filter(referral_code=referral_code)
 
 
 class ReferralListView(APIView):
@@ -40,11 +45,12 @@ class ReferralListView(APIView):
 
         code = await get_cached_code(owner=user)
 
-        referrals = await User.objects.filter(referral_code=code).aall() if code else []
+        referrals = []
+        async for user in await sync_to_async(User.objects.filter)(referral_code=code):
+            referrals.append(user)
 
-        serializer = UserReferralSerializer(referrals, many=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(UserReferralSerializer(referrals[0]).data, status=status.HTTP_200_OK)
 
 
 class ReferralCodeCreateView(APIView):
