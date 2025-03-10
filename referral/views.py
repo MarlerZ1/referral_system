@@ -46,10 +46,11 @@ class ReferralListView(APIView):
         code = await get_cached_code(owner=user)
 
         referrals = []
-        async for user in await sync_to_async(User.objects.filter)(referral_code=code):
-            referrals.append(user)
+        if code:
+            async for user in await sync_to_async(User.objects.filter)(referral_code=code):
+                    referrals.append(user)
 
-
+        print(referrals)
         return Response(UserReferralSerializer(referrals, many=True).data, status=status.HTTP_200_OK)
 
 
