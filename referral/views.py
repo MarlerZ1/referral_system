@@ -50,7 +50,7 @@ class ReferralListView(APIView):
             referrals.append(user)
 
 
-        return Response(UserReferralSerializer(referrals[0]).data, status=status.HTTP_200_OK)
+        return Response(UserReferralSerializer(referrals, many=True).data, status=status.HTTP_200_OK)
 
 
 class ReferralCodeCreateView(APIView):
