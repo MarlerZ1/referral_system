@@ -1,9 +1,11 @@
 import uuid
 
 import httpx
+import pytz
 from adrf.serializers import Serializer
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -22,6 +24,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ("username", "email", "password", "referral_code", "first_name", "last_name")
         extra_kwargs = {"password": {"write_only": True}}
 
+
     def create(self, validated_data):
         referral_code = validated_data.pop("referral_code", None)
 
@@ -32,16 +35,16 @@ class RegisterSerializer(serializers.ModelSerializer):
                 try:
                     referral_code = uuid.UUID(referral_code, version=4)
                     code = ReferralCode.objects.get(uuid=referral_code)
-
-                    code.clean()
-                    code.owner = user
-                    code.save()
                 except ValueError:
-                    print("Invalid UUID format")
-                except ValidationError:
-                    print("Code isn't active")
+                    raise ValidationError("Invalid UUID format")
                 except ObjectDoesNotExist:
-                    print("Incorrect code")
+                    raise ValidationError("Incorrect code")
+
+                if code.expires_at < timezone.now():
+                    raise ValidationError("Code isn't active")
+
+                user.referral_code = code
+                user.save()
         return user
 
     async def check_email(self, email):
