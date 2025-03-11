@@ -1,6 +1,8 @@
 # Введение
 В данном документе будет описан способ запуска приложения для тестового задания.
 
+Процесс тестирования и запуска приложения в формате видео можно посмотреть [тут](https://youtu.be/gFLxoFYMdRg) или [тут](https://rutube.ru/video/private/216c5061f9e1e2e5f1b2452b1d16532f/?p=uD_MRtUvi--_H1yjtGCPGw)
+
 
 Приложение развернуто на сайте, для доступа:
 - Админка:  http://94.250.252.8/admin
@@ -8,8 +10,12 @@
 - ReDoc:  http://94.250.252.8/docs/redoc
 
 Аккаунт администратора:
-- Логин: admin
-- Пароль: template_password_098
+- Логин: `admin`
+- Пароль: `template_password_098`
+
+Данные приложения для авторизации:
+- Client id: `OqCsBLPtBQ0h1jzIrXGsEI06lHBpmNQ624wQXxEZ`
+- Client Secret: `ZjUub81AqRofNx0Eep5BiXSd3WftX3Sgt6PtAZNYShny5K88lgMv6LGyig1r4RcknlO32dH6HKNZcXFw9nNKV3q1dcFQDUqyr3qGftirX4igtQmLTMnAOFKySwAAhpWX`
 
 Тестовое задание представляет собой rest api проект для реферальной системы. Для авторизации используется Oauth 2.0, для документации - swagger / redoc. Указываемый при регистрации email проверяется с помощью сервиса emailhunter.co. I/O Bound задачи асинхронны насколько позволяет фреймворк. Реферальные коды кешируются в redis базу данных. Проект обернут в Docker + nginx.
 
@@ -34,6 +40,10 @@
 - скопировать token, нажать на кнопку "Authorize" справа сверху экрана, ввести токен;
 - далее можно проводить тестирование.
 
+
+Важно:
+- для регистрации пользователя по коду, нужно добавить в reg запрос в поле "referral_code" uuid кода;
+- при авторизации "grant_type": "password".
 ## Пример заполнения .env файла
 ```
 SECRET_KEY = 'django-insecure-%ny-a9jw^m+-*tqfk-aaaaaaaaaaa(pqbbbbbbbbbbbbb'
